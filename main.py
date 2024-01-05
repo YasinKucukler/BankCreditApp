@@ -58,6 +58,49 @@ def dbConnect(tc, isim, sifre, maas, kira, fatura, aidat, ev, araba):
             cursor.close()
 
 
+def check_tc_in_db(tc):
+    with sqlite3.connect(dbPath) as db:
+        cursor = db.cursor()
+        try:
+            query = "SELECT * FROM customer WHERE tc=?"
+            cursor.execute(query, (tc,))
+            result = cursor.fetchone()
+
+            if result:
+                print("TC bulundu.")
+                return True
+            else:
+                print("TC bulunamadı.")
+                return False
+
+        except sqlite3.Error as e:
+            print(f"Error checking TC in database: {e}")
+            return False
+        finally:
+            cursor.close()
+
+def check_name_and_password_in_db(tc, isim, sifre):
+    with sqlite3.connect(dbPath) as db:
+        cursor = db.cursor()
+        try:
+            query = "SELECT * FROM customer WHERE tc=? AND isim=? AND sifre=?"
+            cursor.execute(query, (tc, isim, sifre))
+            result = cursor.fetchone()
+
+            if result:
+                print("TC, isim ve şifre eşleşiyor.")
+                return True
+            else:
+                print("TC, isim veya şifre eşleşmiyor.")
+                return False
+
+        except sqlite3.Error as e:
+            print(f"Error checking name and password in database: {e}")
+            return False
+        finally:
+            cursor.close()
+
+
 banka = Banka()
 menü = """
     \tKÜÇÜKLER Bankasına Hoş Geldiniz
@@ -85,8 +128,9 @@ while True:
     secim = input("Seçiminiz:")
     if secim == "1":
         girilen_tc = input("TC no giriniz:")
+
         tc_no = [a.tc for a in banka.müsteriler]
-        if girilen_tc in tc_no:
+        if check_tc_in_db(girilen_tc):
             for müsteri in banka.müsteriler:
                 if girilen_tc == müsteri.tc:
                     girilen_sifre = input("Şifre giriniz:")
